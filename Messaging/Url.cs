@@ -2,15 +2,17 @@
 * Messaging URLS
 * 
 * MSMQ: 
-*   msmq://public/queue
-*   msmq://public/queue#subqueue
+*   msmq://host/queue
+*   msmq://host/queue#subqueue
 *   msmq://host/private$/queue
 *   msmq://host/private$/queue/topic/subtopic
-*   msmq+pgm://multicast:port/private$/queue/subtopic
 *   msmq+os://host/queue
+*   msmq+os://host/private$/queue
 *   msmq+tcp://1.2.3.4/queue
-*   msmq+http://host/queue
-*   msmq+https://host/queue
+*   msmq+tcp://1.2.3.4/private$/queue
+*   msmq+http://host/private$/queue
+*   msmq+https://host/private$/queue
+*   msmq+pgm://multicast:port/private$/queue/subtopic
 * 
 * Tibco Rendevous:
 *   rv://service/topic/subtopic/etc

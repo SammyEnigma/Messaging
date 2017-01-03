@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Caching;
 using System.Text;
@@ -24,22 +25,26 @@ namespace Messaging.Msmq
         public static MSMQ.MessageQueue GetOrAddQueue(Uri uri)
         {
             if (uri == null) return null;
-            string name = UriToFormatName(uri);
-            var q = Queues.Get(name);
+            var details = UriToQueueName(uri);
+            var q = Queues.Get(details.QueueName);
             if (q == null)
-                q = Queues.AddOrGetExisting(name, new MSMQ.MessageQueue(name), new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(20) });
+                q = Queues.AddOrGetExisting(details.QueueName, new MSMQ.MessageQueue(details.QueueName), new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(20) });
 
             return (MSMQ.MessageQueue)q;
         }
 
-        static string UriToFormatName(Uri uri)
+        public static QueueDetails UriToQueueName(Uri uri)
         {
             var name = new StringBuilder(30);
-            var computerOrPublic = uri.Host;
-
+            var host = uri.Host;
             var pathBits = uri.AbsolutePath.Split('/').ToList();
-            var @private = !"public".Equals(computerOrPublic, StringComparison.OrdinalIgnoreCase);
+
+            Debug.Assert(pathBits[0].Length == 0, "URI starts with / so first entry is empty");
             pathBits.RemoveAt(0);
+
+            var @private = "private$".Equals(pathBits[0], StringComparison.OrdinalIgnoreCase);
+            if (@private)
+                pathBits.RemoveAt(0);
 
             var queue = pathBits[0];
             pathBits.RemoveAt(0);
@@ -48,48 +53,67 @@ namespace Messaging.Msmq
 
             var subqueue = uri.Fragment;
 
-            if (@private && ".".Equals(computerOrPublic, StringComparison.Ordinal))
-                computerOrPublic = Environment.MachineName;
+            if (@private && ".".Equals(host, StringComparison.Ordinal))
+                host = Environment.MachineName;
 
             switch (uri.Scheme)
             {
                 case "msmq":
+                    name.Append(host).Append('\\');
                     if (@private)
-                        name.Append("PRIVATE=");
-                    else
-                        name.Append("PUBLIC=");
-                    name.Append(computerOrPublic);
+                        name.Append(@"private$\");
+                    name.Append(queue);
                     break;
                 case "msmq+os":
-                    name.Append("DIRECT=OS:").Append(computerOrPublic);
+                    name.Append("FORMATNAME:DIRECT=OS:").Append(host).Append('\\');
                     if (@private)
-                        name.Append("\\private$\\");
+                        name.Append("private$\\");
+                    name.Append(queue);
                     break;
                 case "msmq+tcp":
-                    name.Append("DIRECT=TCP:").Append(computerOrPublic);
+                    name.Append("FORMATNAME:DIRECT=TCP:").Append(host).Append('\\');
                     if (@private)
-                        name.Append("\\private$\\");
+                        name.Append("private$\\");
+                    name.Append(queue);
                     break;
                 case "msmq+http":
-                    name.Append("DIRECT=HTTP://").Append(computerOrPublic).Append("/msmq/");
+                    name.Append("FORMATNAME:DIRECT=HTTP://").Append(host).Append("/msmq/");
                     if (@private)
                         name.Append("private$\\");
+                    name.Append(queue);
                     break;
                 case "msmq+https":
-                    name.Append("DIRECT=HTTPS://").Append(computerOrPublic).Append("/msmq/");
+                    name.Append("FORMATNAME:DIRECT=HTTPS://").Append(host).Append("/msmq/");
                     if (@private)
                         name.Append("private$\\");
+                    name.Append(queue);
+                    break;
+                case "msmq+pgm":
+                    name.Append("FORMATNAME:MULTICAST=").Append(host).Append(':').Append(uri.Port);
                     break;
                 default:
                     throw new NotSupportedException($"scheme '{uri.Scheme}' is not supported for uri {uri}");
             }
-            name.Append(queue);
-            return name.ToString();
+            return new QueueDetails(name.ToString(), subqueue, topic);
         }
 
         internal static IReadOnlyMessage FromMsmqMessage(MSMQ.Message msmq)
         {
             throw new NotImplementedException();
+        }
+    }
+
+    struct QueueDetails
+    {
+        public string QueueName { get; }
+        public string Subqueue { get; }
+        public string Topic { get; }
+
+        public QueueDetails(string formatName, string subqueue, string topic)
+        {
+            QueueName = formatName;
+            Subqueue = subqueue;
+            Topic = topic;
         }
     }
 }

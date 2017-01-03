@@ -55,6 +55,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReadOnlyMsmqMessageHeaderTests.cs" />
     <Compile Include="ReadOnlyMsmqMessageTests.cs" />
+    <Compile Include="UriConversionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Messaging.Msmq\Messaging.Msmq.csproj">
