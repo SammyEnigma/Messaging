@@ -1,5 +1,5 @@
 ﻿/*
-* Messaging URLS
+* Messaging URLs
 * 
 * MSMQ: 
 *   msmq://host/queue
@@ -21,6 +21,19 @@
 *   rv+cm://service/topic/subtopic/etc
 *   rv+dq://service/topic/subtopic/etc
 *   rv+ipc://localhost/topic/subtopic/etc
+*   
+* RabbitMQ
+*   ampq://host/exchange/name
+*   ampq://host/queue/name
+*   ampq://host/queue/name/topic
+*   
+* STOMP
+*   stomp://host/exchange/name
+*   stomp://host/queue/name
+*   stomp://stdin/exchange/name
+*   stomp://stdin/queue/name
+*   stomp://stdout/exchange/name
+*   stomp://stdout/queue/name
 */
 
 
