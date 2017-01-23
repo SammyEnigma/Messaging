@@ -4,10 +4,10 @@ using System.Linq;
 using System.Runtime.Caching;
 using System.Text;
 using MSMQ = System.Messaging;
+using static System.StringComparison;
 
 namespace Messaging.Msmq
 {
-
     static class Converter
     {
         public static MSMQ.Message ToMsmqMessage(IReadOnlyMessage msg)
@@ -33,6 +33,49 @@ namespace Messaging.Msmq
             return (MSMQ.MessageQueue)q;
         }
 
+        internal static Uri QueueNameToUri(MSMQ.MessageQueue queue)
+        {
+            var fn = FormatName.Parse(queue.FormatName);
+            if (fn == null) return null;
+            var sb = new StringBuilder(30);
+            if (fn.Scheme.Equals("multicast", OrdinalIgnoreCase))
+            {
+                sb.Append("msmq+pgm://").Append(fn.Host).Append('/');
+            }
+            else if (IsDirectWithMulticast(queue, fn))
+            {
+                sb.Append("msmq+pgm://").Append(queue.MulticastAddress).Append(fn.Path.Replace('\\', '/'));
+            }
+            else
+            {
+                // not multicast
+                if (string.Equals(fn.Scheme, "OS", OrdinalIgnoreCase))
+                    sb.Append("msmq+os");
+                else if (string.Equals(fn.Scheme, "TCP", OrdinalIgnoreCase))
+                    sb.Append("msmq+tcp");
+                else if (string.Equals(fn.Scheme, "HTTP", OrdinalIgnoreCase))
+                    sb.Append("msmq+http");
+                else if (string.Equals(fn.Scheme, "HTTPS", OrdinalIgnoreCase))
+                    sb.Append("msmq+https");
+                else
+                    return null;
+                sb.Append("://").Append(fn.Host).Append(fn.Path.Replace('\\', '/'));
+            }
+            return new Uri(sb.ToString());
+        }
+
+        static bool IsDirectWithMulticast(MSMQ.MessageQueue queue, FormatName fn)
+        {
+            try
+            {
+                return fn.Scheme.Equals("OS", OrdinalIgnoreCase) && !string.IsNullOrEmpty(queue.MulticastAddress);
+            }
+            catch (MSMQ.MessageQueueException ex) when (ex.MessageQueueErrorCode == MSMQ.MessageQueueErrorCode.UnsupportedFormatNameOperation)
+            {
+                return false;
+            }
+        }
+
         public static QueueDetails UriToQueueName(Uri uri)
         {
             var name = new StringBuilder(30);
@@ -42,7 +85,7 @@ namespace Messaging.Msmq
             Debug.Assert(pathBits[0].Length == 0, "URI starts with / so first entry is empty");
             pathBits.RemoveAt(0);
 
-            var @private = "private$".Equals(pathBits[0], StringComparison.OrdinalIgnoreCase);
+            var @private = "private$".Equals(pathBits[0], OrdinalIgnoreCase);
             if (@private)
                 pathBits.RemoveAt(0);
 
@@ -53,7 +96,7 @@ namespace Messaging.Msmq
 
             var subqueue = uri.Fragment;
 
-            if (@private && ".".Equals(host, StringComparison.Ordinal))
+            if (@private && ".".Equals(host, Ordinal))
                 host = Environment.MachineName;
 
             switch (uri.Scheme)

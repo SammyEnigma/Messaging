@@ -26,5 +26,15 @@ namespace Messaging.Msmq.UnitTests
             var msg = new ReadOnlyMsmqMessage(mqm);
             Assert.AreEqual("hello world", msg.Body);
         }
+
+        [Test]
+        public void can_replyto_another_msmq_queue()
+        {
+            const string QName = @".\private$\ReadOnlyMsmqMessageTests";
+            var messageQueue = MSMQ.MessageQueue.Exists(QName) ? new MSMQ.MessageQueue(QName) : MSMQ.MessageQueue.Create(QName);
+            var mqm = new MSMQ.Message("hello world") { ResponseQueue = messageQueue };
+            var msg = new ReadOnlyMsmqMessage(mqm);
+            Assert.AreEqual(new Uri($"msmq+os://{Environment.MachineName}/private$/ReadOnlyMsmqMessageTests"), msg.ReplyTo);
+        }
     }
 }

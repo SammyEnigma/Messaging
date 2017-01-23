@@ -25,14 +25,23 @@ namespace Messaging.Msmq
                     _headers = new ReadOnlyMsmqMessageHeaders(_msg); // lazy creation of the headers
                 return _headers;
             }
-
         }
 
         public Uri ReplyTo
         {
             get
             {
-                throw new NotImplementedException();
+                Uri replyTo = null;
+                if (_msg.ResponseQueue != null)
+                {
+                    replyTo = Converter.QueueNameToUri(_msg.ResponseQueue);
+                }
+                if (replyTo == null && Headers.ContainsKey(nameof(ReplyTo)))
+                {
+                    object val = Headers[nameof(ReplyTo)];
+                    replyTo = new Uri(val.ToString());
+                }
+                return replyTo;
             }
         }
 

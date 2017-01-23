@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FormatName.cs" />
     <Compile Include="KeyValuePairParser.cs" />
     <Compile Include="MsmqTransportFactory.cs" />
     <Compile Include="Converter.cs" />
