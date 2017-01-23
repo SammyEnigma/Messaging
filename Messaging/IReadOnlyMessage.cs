@@ -31,10 +31,10 @@ namespace Messaging
         /// <summary>the priority of this message</summary>
         /// <example>1</example>
         /// <example>2</example>
-        /// <remarks>Not supported by Tibco RV</remarks>
+        /// <remarks>Ignored by Tibco RV, as priority is not supported.</remarks>
         int? Priority { get; }
 
-        /// <summary>Where to send a reply to</summary>
+        /// <summary>Where to send a reply to, can be NULL</summary>
         /// <example>msmq://host/PRIVATE$/queue</example>
         /// <example>rv://service/topic/subtopic/etc</example>
         Uri ReplyTo { get; }

@@ -2,13 +2,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Messaging.Msmq
 {
+    /// <summary>
+    /// Parses a comma-separated list of key=value pairs.  Strings must be delimited with double quotes, numbers and true/false/null values are also supported.
+    /// </summary>
+    /// <example>
+    /// "ContentType"="text/plain","SomeFlag"=true,OptionalThing=null,TimeoutSecs=123
+    /// </example>
     static class KeyValuePairParser
     {
         public static IEnumerable<KeyValuePair<string, object>> Parse(byte[] text) => Parse(Encoding.UTF8.GetString(text));
