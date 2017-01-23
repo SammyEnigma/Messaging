@@ -24,23 +24,12 @@ namespace Messaging.TibcoRv
 
         public string Subject => _msg.SendSubject;
 
-        public Uri ReplyTo
-        {
-            get
-            {
-                object xReplyTo;
-                if (Headers.TryGetValue(Fields.ReplyTo, out xReplyTo))
-                    return new Uri(xReplyTo.ToString());
-                return string.IsNullOrWhiteSpace(_msg.ReplySubject) ? null : new Uri(_source, Converter.FromRvSubject(_msg.ReplySubject));
-            }
-        }
-
         public IReadOnlyMessageHeaders Headers
         {
             get
             {
                 if (_headers == null)
-                    _headers = new ReadOnlyRvMessageHeaders(_msg); // lazy creation of the headers
+                    _headers = new ReadOnlyRvMessageHeaders(_msg, _source); // lazy creation of the headers
                 return _headers;
             }
         }

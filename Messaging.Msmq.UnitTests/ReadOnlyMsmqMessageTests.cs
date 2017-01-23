@@ -34,7 +34,7 @@ namespace Messaging.Msmq.UnitTests
             var messageQueue = MSMQ.MessageQueue.Exists(QName) ? new MSMQ.MessageQueue(QName) : MSMQ.MessageQueue.Create(QName);
             var mqm = new MSMQ.Message("hello world") { ResponseQueue = messageQueue };
             var msg = new ReadOnlyMsmqMessage(mqm);
-            Assert.AreEqual(new Uri($"msmq+os://{Environment.MachineName}/private$/ReadOnlyMsmqMessageTests"), msg.ReplyTo);
+            Assert.AreEqual(new Uri($"msmq+os://{Environment.MachineName}/private$/ReadOnlyMsmqMessageTests"), msg.Headers.ReplyTo);
         }
     }
 }

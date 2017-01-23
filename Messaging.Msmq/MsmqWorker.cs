@@ -10,7 +10,7 @@ namespace Messaging.Msmq
         static readonly TimeSpan _peekTimeout = TimeSpan.FromSeconds(1);
         static readonly MSMQ.MessagePropertyFilter peekFilter;
         static readonly MSMQ.MessagePropertyFilter readFilter;
-        readonly object gate;
+        //readonly object gate;
 
         static MsmqWorker()
         {

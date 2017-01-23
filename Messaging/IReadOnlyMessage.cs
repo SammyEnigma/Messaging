@@ -11,11 +11,6 @@ namespace Messaging
         /// <remarks>This is the Label for MSMQ messages, the SendSubject of Tibco RV messages</remarks>
         string Subject { get; }
 
-        /// <summary>Where to send a reply to</summary>
-        /// <example>msmq://host/PRIVATE$/queue</example>
-        /// <example>rv://service/topic/subtopic/etc</example>
-        Uri ReplyTo { get; }
-
         /// <summary>System and user defined message attributes</summary>
         IReadOnlyMessageHeaders Headers { get; }
 
@@ -30,9 +25,6 @@ namespace Messaging
     [System.ComponentModel.ImmutableObject(true)]
     public interface IReadOnlyMessageHeaders : IReadOnlyDictionary<string, object>
     {
-        /// <summary>Sets an expiry time for this message</summary>
-        TimeSpan? TimeToLive { get; }
-
         /// <summary>The MIME type of the message, <see cref="ContentTypes"/> for common settings</summary>
         string ContentType { get; }
 
@@ -41,6 +33,14 @@ namespace Messaging
         /// <example>2</example>
         /// <remarks>Not supported by Tibco RV</remarks>
         int? Priority { get; }
+
+        /// <summary>Where to send a reply to</summary>
+        /// <example>msmq://host/PRIVATE$/queue</example>
+        /// <example>rv://service/topic/subtopic/etc</example>
+        Uri ReplyTo { get; }
+
+        /// <summary>Sets an expiry time for this message</summary>
+        TimeSpan? TimeToLive { get; }
     }
 
     public static class ContentTypes

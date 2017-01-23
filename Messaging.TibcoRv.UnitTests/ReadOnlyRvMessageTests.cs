@@ -33,7 +33,7 @@ namespace Messaging.TibcoRv.UnitTests
         {
             var rvm = new Rv.Message();
             var msg = new ReadOnlyRvMessage(rvm, null);
-            Assert.AreEqual(null, msg.ReplyTo);
+            Assert.AreEqual(null, msg.Headers.ReplyTo);
         }
 
         [Test]
@@ -67,7 +67,7 @@ namespace Messaging.TibcoRv.UnitTests
             var rvm = new Rv.Message();            
             rvm.ReplySubject = "test.topic";
             var msg = new ReadOnlyRvMessage(rvm, new Uri("rv://service"));
-            Assert.AreEqual(new Uri("rv://service/test/topic"), msg.ReplyTo);
+            Assert.AreEqual(new Uri("rv://service/test/topic"), msg.Headers.ReplyTo);
         }
     }
 }

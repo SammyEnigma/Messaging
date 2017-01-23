@@ -75,6 +75,24 @@ namespace Messaging.Msmq
 
         public int? Priority => (int)_msg.Priority;
 
+        public Uri ReplyTo
+        {
+            get
+            {
+                Uri replyTo = null;
+                if (_msg.ResponseQueue != null)
+                {
+                    replyTo = Converter.QueueNameToUri(_msg.ResponseQueue);
+                }
+                if (replyTo == null && ContainsKey(nameof(ReplyTo)))
+                {
+                    object val = this[nameof(ReplyTo)];
+                    replyTo = new Uri(val.ToString());
+                }
+                return replyTo;
+            }
+        }
+
         public TimeSpan? TimeToLive => _msg.TimeToBeReceived == MSMQ.Message.InfiniteTimeout ? default(TimeSpan?) : _msg.TimeToBeReceived; 
 
         public IEnumerable<object> Values

@@ -61,6 +61,18 @@ namespace Messaging.Stomp
             }
         }
 
+        public Uri ReplyTo
+        {
+            get
+            {
+                object value;
+                if (TryGetValue(nameof(ReplyTo), out value) && value is string)
+                    return new Uri((string)value);
+                return null;
+            }
+        }
+
+
         /// <summary>The expiry time for this message (optional)</summary>
         public TimeSpan? TimeToLive
         {

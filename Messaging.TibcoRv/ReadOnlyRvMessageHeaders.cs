@@ -10,11 +10,13 @@ namespace Messaging.TibcoRv
     class ReadOnlyRvMessageHeaders : IReadOnlyMessageHeaders
     {
         readonly Rv.Message msg;
+        readonly Uri _source;
 
-        internal ReadOnlyRvMessageHeaders(Rv.Message msg)
+        internal ReadOnlyRvMessageHeaders(Rv.Message msg, Uri source = null)
         {
             Contract.Requires(msg != null);
             this.msg = msg;
+            _source = source;
         }
 
         public string ContentType => this[nameof(ContentType)]?.ToString();
@@ -25,6 +27,17 @@ namespace Messaging.TibcoRv
             {
                 var value = this[nameof(Priority)];
                 return value == null ? default(int?) : Convert.ToInt32(value);
+            }
+        }
+
+        public Uri ReplyTo
+        {
+            get
+            {
+                object xReplyTo;
+                if (TryGetValue(Fields.ReplyTo, out xReplyTo))
+                    return new Uri(xReplyTo.ToString());
+                return string.IsNullOrWhiteSpace(msg.ReplySubject) ? null : new Uri(_source, Converter.FromRvSubject(msg.ReplySubject));
             }
         }
 

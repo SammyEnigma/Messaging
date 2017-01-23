@@ -86,9 +86,9 @@ namespace Messaging.TibcoRv.UnitTests
                 Body = "hello world",
                 Headers = new MessageHeaders
                 {
-                    { nameof(MessageHeaders.ContentType), ContentTypes.PlainText }
-                },
-                ReplyTo = new Uri("rv://rendezvous/reply/topic"),
+                    { nameof(MessageHeaders.ContentType), ContentTypes.PlainText },
+                    { "ReplyTo" , new Uri("rv://rendezvous/reply/topic") }
+                }                
             };
         }
     }

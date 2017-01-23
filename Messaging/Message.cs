@@ -23,10 +23,6 @@ namespace Messaging
             }
         }
 
-        /// <summary>Address to send a reply to this message.  Can be null</summary>
-        /// <example>msmq://host/PRIVATE$/queue</example>
-        /// <example>rv://topic/subtopic/etc</example>
-        public Uri ReplyTo { get; set; }
 
         /// <summary>System and user defined message attributes.  Will never be null</summary>
         /// <exception cref="ArgumentNullException">Thrown if you try to set the message headers to null</exception>

@@ -36,10 +36,33 @@ namespace Messaging
             }
             set
             {
-                if (value != null)
-                    this[nameof(Priority)] = value.Value;
-                else
+                if (value == null)
                     Remove(nameof(Priority));
+                else
+                    this[nameof(Priority)] = value.Value;
+            }
+        }
+
+        /// <summary>Address to send a reply to this message.  Can be null</summary>
+        /// <example>msmq://host/PRIVATE$/queue</example>
+        /// <example>rv://topic/subtopic/etc</example>
+        public Uri ReplyTo
+        {
+            get
+            {
+                object val;
+                if (!TryGetValue(nameof(ReplyTo), out val))
+                    return null;
+                if (val is Uri)
+                    return (Uri)val;
+                return new Uri(val.ToString());
+            }
+            set
+            {
+                if (value == null)
+                    Remove(nameof(ReplyTo));
+                else
+                    this[nameof(ReplyTo)] = value;
             }
         }
 

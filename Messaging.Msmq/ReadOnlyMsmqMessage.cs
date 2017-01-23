@@ -27,24 +27,6 @@ namespace Messaging.Msmq
             }
         }
 
-        public Uri ReplyTo
-        {
-            get
-            {
-                Uri replyTo = null;
-                if (_msg.ResponseQueue != null)
-                {
-                    replyTo = Converter.QueueNameToUri(_msg.ResponseQueue);
-                }
-                if (replyTo == null && Headers.ContainsKey(nameof(ReplyTo)))
-                {
-                    object val = Headers[nameof(ReplyTo)];
-                    replyTo = new Uri(val.ToString());
-                }
-                return replyTo;
-            }
-        }
-
         public string Subject => _msg.Label;
 
         public void Acknowledge()

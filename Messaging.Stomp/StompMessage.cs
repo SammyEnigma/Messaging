@@ -23,17 +23,6 @@ namespace Messaging.Stomp
 
         public IReadOnlyMessageHeaders Headers => headers;
 
-        public Uri ReplyTo
-        {
-            get
-            {
-                object value;
-                if (headers.TryGetValue(nameof(ReplyTo), out value) && value is string)
-                    return new Uri((string)value);
-                return null;
-            }
-        }
-
         public string Subject => headers["subject"]?.ToString();
 
         public void Acknowledge()

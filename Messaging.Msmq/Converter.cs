@@ -16,7 +16,7 @@ namespace Messaging.Msmq
             {
                 Priority = msg.Headers.Priority.HasValue ? (MSMQ.MessagePriority)msg.Headers.Priority : MSMQ.MessagePriority.Normal,
                 TimeToBeReceived = msg.Headers.TimeToLive.HasValue ? msg.Headers.TimeToLive.Value : MSMQ.Message.InfiniteTimeout,
-                ResponseQueue = GetOrAddQueue(msg.ReplyTo),
+                ResponseQueue = GetOrAddQueue(msg.Headers.ReplyTo),
             };
         }
 

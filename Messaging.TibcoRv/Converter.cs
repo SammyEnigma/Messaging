@@ -31,9 +31,9 @@ namespace Messaging.TibcoRv
             {
                 rvm.SendSubject = ToRvSubject(msg.Subject);
             }
-            if (msg.ReplyTo != null)
+            if (msg.Headers.ReplyTo != null)
             {
-                AddReplyTo(source, rvm, msg.ReplyTo);
+                AddReplyTo(source, rvm, msg.Headers.ReplyTo);
             }
             if (msg.Headers.Priority.HasValue)
             {
@@ -96,7 +96,7 @@ namespace Messaging.TibcoRv
 
             var msg = new Message { Subject = rv.SendSubject };
             if (!string.IsNullOrWhiteSpace(rv.ReplySubject))
-                msg.ReplyTo = new Uri(source, rv.ReplySubject.FromRvSubject());
+                msg.Headers.ReplyTo = new Uri(source, rv.ReplySubject.FromRvSubject());
 
             for (uint i = 0; i < rv.FieldCount; i++)
             {
@@ -106,7 +106,7 @@ namespace Messaging.TibcoRv
                     var xReplyTo = f.Value?.ToString();
                     if (!string.IsNullOrWhiteSpace(xReplyTo))
                     {
-                        msg.ReplyTo = new Uri(f.Value.ToString());
+                        msg.Headers.ReplyTo = new Uri(f.Value.ToString());
                         continue;
                     }
                 }

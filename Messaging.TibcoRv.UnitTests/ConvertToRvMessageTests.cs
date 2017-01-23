@@ -48,7 +48,7 @@ namespace Messaging.TibcoRv
         {
             var input = new Message
             {
-                ReplyTo = new Uri("rv://service/other/topic"),
+                Headers = new MessageHeaders { { "ReplyTo", new Uri("rv://service/other/topic") } }
             };
             var output = Converter.ToRvMessge(input, new Uri("rv://service/test/topic"));
             Assert.AreEqual("other.topic", output.ReplySubject);
