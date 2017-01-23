@@ -10,8 +10,8 @@
 *   msmq+os://host/private$/queue
 *   msmq+tcp://1.2.3.4/queue
 *   msmq+tcp://1.2.3.4/private$/queue
-*   msmq+http://host/private$/queue
-*   msmq+https://host/private$/queue
+*   msmq+http://host/msmq/private$/queue
+*   msmq+https://host/msmq/private$/queue
 *   msmq+pgm://multicast:port/private$/queue/subtopic
 * 
 * Tibco Rendevous:

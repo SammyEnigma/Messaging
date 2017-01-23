@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -92,6 +93,11 @@ namespace Messaging.Stomp
             line = line.Replace(@"\c", ":");
             line = line.Replace(@"\\", @"\");
             return line;
+        }
+
+        public static void Ignore(this Task t)
+        {
+            GC.KeepAlive(t);
         }
     }
 }

@@ -8,7 +8,7 @@ namespace Messaging.Stomp
         public Dictionary<string, object> Headers { get; }
         public object Body { get; }
 
-        public Frame(string command, Dictionary<string, object> headers, object body)
+        public Frame(string command, Dictionary<string, object> headers, object body = null)
         {
             if (headers == null)
                 throw new System.ArgumentNullException(nameof(headers));
