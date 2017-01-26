@@ -89,23 +89,22 @@ namespace Messaging.TibcoRv.UnitTests
             Assert.AreEqual(1, headers.Count, "headers.Count");
         }
 
-        [TestCase("user")]
-        [TestCase("custom")]
+        [TestCase("user", ExpectedException = typeof(KeyNotFoundException))]
+        [TestCase("custom", ExpectedException = typeof(KeyNotFoundException))]
         public void indexer_returns_null_for_undefined_property(string name)
         {
             var rvm = new Rv.Message();
             var headers = new ReadOnlyRvMessageHeaders(rvm);
-            Assert.IsNull(headers[name]);
+            var ignoreed = headers[name];
         }
 
-        [Test]
+        [Test, ExpectedException(ExpectedException = typeof(KeyNotFoundException))]
         public void cannot_access_the_body_via_the_header()
         {
             var rvm = new Rv.Message();
             rvm.AddField("Body", "value");
             var headers = new ReadOnlyRvMessageHeaders(rvm);
-            Assert.IsNull(headers["Body"]);
-            Assert.AreEqual(0, headers.Count, "headers.Count");
+            var ignoreed = headers["Body"];
         }
 
         [TestCase("user", "caustin")]

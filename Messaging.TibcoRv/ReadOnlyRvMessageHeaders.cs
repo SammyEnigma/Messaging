@@ -19,13 +19,24 @@ namespace Messaging.TibcoRv
             _source = source;
         }
 
-        public string ContentType => this[nameof(ContentType)]?.ToString();
+        public string ContentType
+        {
+            get
+            {
+                object value;
+                if (!TryGetValue(nameof(ContentType), out value))
+                    return null;
+                return value.ToString();
+            }
+        }
 
         public int? Priority
         {
             get
             {
-                var value = this[nameof(Priority)];
+                object value;
+                if (!TryGetValue(nameof(Priority), out value))
+                    return null;
                 return value == null ? default(int?) : Convert.ToInt32(value);
             }
         }
@@ -45,12 +56,23 @@ namespace Messaging.TibcoRv
         {
             get
             {
-                var value = this[nameof(TimeToLive)];
+                object value;
+                if (!TryGetValue(nameof(TimeToLive), out value))
+                    return null;                    
                 return TimeSpans.TryParse(value?.ToString());
             }
         }
 
-        public object this[string key] => Fields.Body == key ? null : msg.GetField(key)?.Value;
+        public object this[string key]
+        {
+            get
+            {
+                object val;
+                if (!TryGetValue(key, out val))
+                    throw new KeyNotFoundException();
+                return val;
+            }
+        }
 
         public int Count => msg.GetField(Fields.Body) == null ? msg.FieldCountAsInt : msg.FieldCountAsInt - 1;
 
