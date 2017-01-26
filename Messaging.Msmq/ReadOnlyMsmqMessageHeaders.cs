@@ -65,6 +65,9 @@ namespace Messaging.Msmq
                     yield return item;
                 }
 
+                if (_msg.ResponseQueue != null)
+                    yield return nameof(ReplyTo);
+
                 yield return nameof(Priority);
 
                 var ttl = TimeToLive;
@@ -104,6 +107,9 @@ namespace Messaging.Msmq
                     yield return item;
                 }
 
+                if (_msg.ResponseQueue != null)
+                    yield return ReplyTo;
+
                 yield return Priority;
 
                 var ttl = TimeToLive;
@@ -115,6 +121,8 @@ namespace Messaging.Msmq
         public bool ContainsKey(string key)
         {
             if (_extensions.ContainsKey(key))
+                return true;
+            if (key == nameof(ReplyTo) && _msg.ResponseQueue != null)
                 return true;
             if (key == nameof(Priority))
                 return true;
@@ -130,6 +138,9 @@ namespace Messaging.Msmq
                 yield return item;
             }
 
+            if (_msg.ResponseQueue != null)
+                yield return new KeyValuePair<string, object>(nameof(ReplyTo), ReplyTo);
+
             yield return new KeyValuePair<string, object>(nameof(Priority), Priority);
 
             var ttl = TimeToLive;
@@ -141,6 +152,11 @@ namespace Messaging.Msmq
         {
             if (_extensions.TryGetValue(key, out value))
             {
+                return true;
+            }
+            if (_msg.ResponseQueue != null)
+            {
+                value = ReplyTo;
                 return true;
             }
             if (key == nameof(Priority))

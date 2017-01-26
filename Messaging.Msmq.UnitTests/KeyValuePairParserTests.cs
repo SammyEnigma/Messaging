@@ -22,6 +22,9 @@ namespace Messaging.Msmq.UnitTests
         }
 
         [TestCase("1", TokenType.Number)]
+        [TestCase("12", TokenType.Number)]
+        [TestCase("1.0", TokenType.Number)]
+        [TestCase("11.01", TokenType.Number)]
         [TestCase("=", TokenType.Equals)]
         [TestCase(",", TokenType.Comma)]
         [TestCase("true", TokenType.True)]

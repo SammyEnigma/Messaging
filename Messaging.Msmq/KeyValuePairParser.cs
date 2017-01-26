@@ -9,10 +9,9 @@ namespace Messaging.Msmq
 {
     /// <summary>
     /// Parses a comma-separated list of key=value pairs.  Strings must be delimited with double quotes, numbers and true/false/null values are also supported.
+    /// Double quotes within quotes must be preceeded with blackslash (\).
     /// </summary>
-    /// <example>
-    /// "ContentType"="text/plain","SomeFlag"=true,OptionalThing=null,TimeoutSecs=123
-    /// </example>
+    /// <example>"ContentType"="text/plain","SomeFlag"=true,OptionalThing=null,TimeoutSecs=123</example>
     static class KeyValuePairParser
     {
         public static IEnumerable<KeyValuePair<string, object>> Parse(byte[] text) => Parse(Encoding.UTF8.GetString(text));
@@ -142,6 +141,19 @@ namespace Messaging.Msmq
         {
             Debug.Assert(char.IsDigit(ch.Current));
             sb.Clear();
+            ParseInteger(ch, sb);
+            if (ch.Next == '.')
+            {
+                ch.MoveNext();
+                if (!char.IsDigit(ch.Next))
+                    throw new ParseException("Number with decimal place but no digits after it");
+                ParseInteger(ch, sb);
+            }
+            return new Token(sb.ToString(), TokenType.Number);
+        }
+
+        static void ParseInteger(CharEnumerator ch, StringBuilder sb)
+        {
             for (;;)
             {
                 sb.Append(ch.Current);
@@ -149,7 +161,6 @@ namespace Messaging.Msmq
                     break;
                 ch.MoveNext();
             }
-            return new Token(sb.ToString(), TokenType.Number);
         }
     }
 

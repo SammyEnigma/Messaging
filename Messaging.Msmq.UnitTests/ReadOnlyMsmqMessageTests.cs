@@ -1,9 +1,4 @@
 ﻿using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using MSMQ = System.Messaging;
 
 namespace Messaging.Msmq.UnitTests
@@ -12,11 +7,27 @@ namespace Messaging.Msmq.UnitTests
     public class ReadOnlyMsmqMessageTests
     {
         [Test]
+        public void no_label_is_mapped_to_empty_subject()
+        {
+            var mqm = new MSMQ.Message { };
+            var msg = new ReadOnlyMsmqMessage(mqm);
+            Assert.AreEqual("", msg.Subject);
+        }
+
+        [Test]
         public void label_is_mapped_to_subject()
         {
             var mqm = new MSMQ.Message { Label = "/say/hello" };
             var msg = new ReadOnlyMsmqMessage(mqm);
             Assert.AreEqual("/say/hello", msg.Subject);
+        }
+
+        [Test]
+        public void unset_body_returns_null()
+        {
+            var mqm = new MSMQ.Message();
+            var msg = new ReadOnlyMsmqMessage(mqm);
+            Assert.AreEqual(null, msg.Body);
         }
 
         [Test]
@@ -27,14 +38,5 @@ namespace Messaging.Msmq.UnitTests
             Assert.AreEqual("hello world", msg.Body);
         }
 
-        [Test]
-        public void can_replyto_another_msmq_queue()
-        {
-            const string QName = @".\private$\ReadOnlyMsmqMessageTests";
-            var messageQueue = MSMQ.MessageQueue.Exists(QName) ? new MSMQ.MessageQueue(QName) : MSMQ.MessageQueue.Create(QName);
-            var mqm = new MSMQ.Message("hello world") { ResponseQueue = messageQueue };
-            var msg = new ReadOnlyMsmqMessage(mqm);
-            Assert.AreEqual(new Uri($"msmq+os://{Environment.MachineName}/private$/ReadOnlyMsmqMessageTests"), msg.Headers.ReplyTo);
-        }
     }
 }
