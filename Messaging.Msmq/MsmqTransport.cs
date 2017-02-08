@@ -35,7 +35,7 @@ namespace Messaging.Msmq
             lock (_gate)
             {
                 if (subjects.TryGetValue(subject, out ms)) return ms;
-                ms = new MessageSubject(_gate, subject); // sahare the same lock
+                ms = new MessageSubject(_gate, subject); // share the same lock
                 ms.FirstSubscriptionAdded += _subAdded;
                 ms.LastSubscriptionRemoved += _subRemoved;
                 subjects = subjects.Add(subject, ms);

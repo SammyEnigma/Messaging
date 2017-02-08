@@ -10,15 +10,45 @@ namespace Messaging.Msmq
 {
     static class Converter
     {
-        public static MSMQ.Message ToMsmqMessage(IReadOnlyMessage msg)
+        static readonly UTF8Encoding utf8 = new UTF8Encoding(false);
+
+        public static MSMQ.Message ToMsmqMessage(this IReadOnlyMessage msg)
         {
             return new MSMQ.Message
             {
                 Priority = msg.Headers.Priority.HasValue ? (MSMQ.MessagePriority)msg.Headers.Priority : MSMQ.MessagePriority.Normal,
                 TimeToBeReceived = msg.Headers.TimeToLive.HasValue ? msg.Headers.TimeToLive.Value : MSMQ.Message.InfiniteTimeout,
                 ResponseQueue = GetOrAddQueue(msg.Headers.ReplyTo),
+                Body = msg.Body,
+                Extension = EncodeExtension(msg.Headers)
             };
         }
+
+        private static byte[] EncodeExtension(IReadOnlyMessageHeaders headers)
+        {
+            var sb = new StringBuilder(30);
+            foreach (var pair in headers.Where(p => p.Key != nameof(IReadOnlyMessageHeaders.Priority) && p.Key != nameof(IReadOnlyMessageHeaders.TimeToLive)))
+            {
+                sb.Append('"').Append(pair.Key.Replace("\"", "\\\"")).Append('"').Append("=");
+                if (pair.Value is bool)
+                    sb.Append(pair.Value);
+                else if (pair.Value is int || pair.Value is short || pair.Value is byte || pair.Value is long)
+                    sb.Append(pair.Value);
+                else if (pair.Value is decimal)
+                    sb.Append(pair.Value);
+                else if (pair.Value is float || pair.Value is double)
+                    sb.Append(pair.Value);
+                else if (pair.Value == null)
+                    sb.Append("null");
+                else
+                    sb.Append('"').Append(pair.Value.ToString().Replace("\"", "\\\"")).Append('"');
+                sb.Append(",");
+            }
+            if (sb.Length > 0)
+                sb.Length--;
+            return utf8.GetBytes(sb.ToString());
+        }
+    
 
         static internal MemoryCache Queues { get; } = new MemoryCache("queues");
 
@@ -28,7 +58,10 @@ namespace Messaging.Msmq
             var details = UriToQueueName(uri);
             var q = Queues.Get(details.QueueName);
             if (q == null)
-                q = Queues.AddOrGetExisting(details.QueueName, new MSMQ.MessageQueue(details.QueueName), new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(20) });
+            {
+                q = new MSMQ.MessageQueue(details.QueueName);
+                Queues.AddOrGetExisting(details.QueueName, q, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(20) });
+            }
 
             return (MSMQ.MessageQueue)q;
         }
@@ -96,8 +129,8 @@ namespace Messaging.Msmq
 
             var subqueue = uri.Fragment;
 
-            if (@private && ".".Equals(host, Ordinal))
-                host = Environment.MachineName;
+            if (@private && "localhost".Equals(host, OrdinalIgnoreCase))
+                host = ".";
 
             switch (uri.Scheme)
             {
