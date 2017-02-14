@@ -14,7 +14,7 @@ namespace Messaging
         /// <example>To create a transport to an MSMQ private queue: msmq://Computer/PRIVATE$/queue</example>
         /// <exception cref="UriFormatException"></exception>
         /// <exception cref="ArgumentNullException"></exception>
-        public static Transport New(this TransportFactory factory, string destination)
+        public static ITransport New(this ITransportFactory factory, string destination)
         {
             if (factory == null) throw new ArgumentNullException(nameof(factory));
             var url = new Uri(destination);

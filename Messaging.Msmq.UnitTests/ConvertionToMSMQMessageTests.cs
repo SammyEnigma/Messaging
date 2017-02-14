@@ -57,8 +57,7 @@ namespace Messaging.Msmq.UnitTests
         [Test]
         public void priority_is_not_encoded_in_extension()
         {
-            var input = new Message();
-            input.Headers.Priority = 3;
+            var input = new Message { Headers = new MessageHeaders { Priority = 3 } };
             var actual = input.ToMsmqMessage();
             Assert.IsNotNull(actual.Extension);
             var extn = new UTF8Encoding(false).GetString(actual.Extension);
@@ -68,8 +67,7 @@ namespace Messaging.Msmq.UnitTests
         [Test]
         public void TTL_is_not_encoded_in_extension()
         {
-            var input = new Message();
-            input.Headers.TimeToLive = TimeSpan.FromMinutes(5);
+            var input = new Message { Headers = new MessageHeaders { TimeToLive = TimeSpan.FromMinutes(5) } };
             var actual = input.ToMsmqMessage();
             Assert.IsNotNull(actual.Extension);
             var extn = new UTF8Encoding(false).GetString(actual.Extension);

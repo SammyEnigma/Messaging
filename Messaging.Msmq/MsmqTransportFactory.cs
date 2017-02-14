@@ -3,10 +3,9 @@
 namespace Messaging.Msmq
 {
 
-    class MsmqTransportFactory : TransportFactory
+    class MsmqTransportFactory : ITransportFactory
     {
-
-        public override Transport New(Uri destination)
+        public ITransport New(Uri destination)
         {
             throw new NotImplementedException();
         }

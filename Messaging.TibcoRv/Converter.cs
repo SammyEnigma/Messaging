@@ -15,7 +15,11 @@ namespace Messaging.TibcoRv
 
     static class Converter
     {
-        public static string ToRvSubject(this string path) => path.TrimStart('/').Replace('/', '.').TrimStart('/');
+        public static string ToRvSubject(this string path)
+        {
+            if (path == null) return ">";   // all messages
+            return path.TrimStart('/').Replace('/', '.').TrimStart('/');
+        }
 
         public static string FromRvSubject(this string subject) => "/" + subject.Replace('.', '/');
 

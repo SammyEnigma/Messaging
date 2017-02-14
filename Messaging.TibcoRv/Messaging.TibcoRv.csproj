@@ -58,7 +58,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Transports.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="RvReceiver.cs" />
+    <Compile Include="RvTransport.cs" />
     <Compile Include="Converter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReadOnlyRvMessage.cs" />

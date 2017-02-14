@@ -1,10 +1,6 @@
 ﻿using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Rv = TIBCO.Rendezvous;
 
 namespace Messaging.TibcoRv.UnitTests
@@ -41,10 +37,10 @@ namespace Messaging.TibcoRv.UnitTests
                 dis = new Rv.Dispatcher(q, 10.0);
 
                 Message input = HelloWorldMessage("/say/hello");
-                using (var trans = new TibcoRvTransport(new Uri("rv+ipc://localhost"), rvt))
+                using (var trans = new RvTransport(new Uri("rv+ipc://localhost"), rvt))
                     trans.Send(input);
 
-                Assert.IsTrue(evt.WaitOne(5000), "timeouted waiting for RV message");
+                Assert.IsTrue(evt.WaitOne(2000), "timeouted waiting for RV message");
                 Assert.IsNotNull(got);
             }
             finally
@@ -61,20 +57,15 @@ namespace Messaging.TibcoRv.UnitTests
             var rvt = Rv.IntraProcessTransport.UniqueInstance;
 
             Message input = HelloWorldMessage("/say/hello");
-            using (var trans = new TibcoRvTransport(new Uri("rv+ipc://localhost"), rvt))
+            using (var trans = new RvTransport(new Uri("rv+ipc://localhost"), rvt))
+            using (var worker = trans.CreateWorker())
             {
-                var subject = trans.NewListener("/say/hello");
-
-                // subscribe and start a worker to receive the messageS
                 IReadOnlyMessage got = null;
                 var evt = new AutoResetEvent(false);
-                using (var subscription = subject.Subscribe(msg => { got = msg; evt.Set(); }))
-                using (trans.StartWorker())
-                {
-                    rvt.Send(new Rv.Message { SendSubject = "say.hello" });
-                    Assert.IsTrue(evt.WaitOne(5000), "timeouted waiting for RV message");
-                   Assert.IsNotNull(got);
-                }
+                worker.Subscribe(msg => { got = msg; evt.Set(); }, "/say/hello");
+                rvt.Send(new Rv.Message { SendSubject = "say.hello" });
+                Assert.IsTrue(worker.DispatchMessage(TimeSpan.FromSeconds(2)));
+                Assert.NotNull(got);
             }
         }
 
