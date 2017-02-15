@@ -2,12 +2,18 @@
 
 namespace Messaging.Msmq
 {
-
-    class MsmqTransportFactory : ITransportFactory
+    public class MsmqTransportFactory : ITransportFactory
     {
-        public ITransport New(Uri destination)
+        public bool TryCreate(Uri destination, out ITransport transport)
         {
-            throw new NotImplementedException();
+            var q = Converter.GetOrAddQueue(destination);
+            if (q == null)
+            {
+                transport = null;
+                return false;
+            }
+            transport = new MsmqTransport(destination, q);
+            return true;
         }
     }
 }

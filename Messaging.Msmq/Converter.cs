@@ -56,6 +56,8 @@ namespace Messaging.Msmq
         {
             if (uri == null) return null;
             var details = UriToQueueName(uri);
+            if (!details.Valid) return null;
+
             var q = Queues.Get(details.QueueName);
             if (q == null)
             {
@@ -168,19 +170,17 @@ namespace Messaging.Msmq
                     name.Append("FORMATNAME:MULTICAST=").Append(host).Append(':').Append(uri.Port);
                     break;
                 default:
-                    throw new NotSupportedException($"scheme '{uri.Scheme}' is not supported for uri {uri}");
+                    return new QueueDetails();  // not valid
             }
             return new QueueDetails(name.ToString(), subqueue, topic);
         }
 
-        internal static IReadOnlyMessage FromMsmqMessage(MSMQ.Message msmq)
-        {
-            throw new NotImplementedException();
-        }
     }
 
     struct QueueDetails
     {
+        public bool Valid => !string.IsNullOrEmpty(QueueName);
+
         public string QueueName { get; }
         public string Subqueue { get; }
         public string Topic { get; }

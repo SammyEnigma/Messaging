@@ -16,7 +16,7 @@ namespace Messaging.TibcoRv
 
         public string Subject { get; }
 
-        public Uri Uri { get; }
+        public Uri Destination { get; }
 
         public RvWorker(Rv.Transport transport, Uri uri)
         {
@@ -26,7 +26,7 @@ namespace Messaging.TibcoRv
                 throw new ArgumentNullException(nameof(uri));
             _transport = transport;
             _queue = new Rv.Queue();
-            Uri = uri;
+            Destination = uri;
         }
 
         public void Dispose()
@@ -51,12 +51,13 @@ namespace Messaging.TibcoRv
 
         public void Subscribe(Action<IReadOnlyMessage> observer, string subject = null)
         {
-            subject = Converter.ToRvSubject(subject);
+            subject = subject ?? Destination.AbsolutePath;
+            var rvSubject =  Converter.ToRvSubject(subject);
             lock (_subscriptions)
             {
-                var l = new Rv.Listener(_queue, _transport, subject, null);
+                var l = new Rv.Listener(_queue, _transport, rvSubject, null);
                 l.MessageReceived += (sender, args) => {
-                    var msg = new ReadOnlyRvMessage(args.Message, Uri);
+                    var msg = new ReadOnlyRvMessage(args.Message, Destination);
                     observer(msg);
                 };
                 _subscriptions.Add(observer, l);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Messaging.Subscriptions;
+using System;
 using System.Threading.Tasks;
 using MSMQ = System.Messaging;
 
@@ -9,7 +10,7 @@ namespace Messaging.Msmq
         readonly object gate = new object();
         readonly MSMQ.MessageQueue queue;
         readonly Uri uri;
-        Subscription[] subscriptions = new Subscription[0];
+        ImmutableArray<Subscription> subscriptions;
         Task<MSMQ.Message>[] tasks = new Task<MSMQ.Message>[0];
         bool disposed;
 
@@ -51,7 +52,7 @@ namespace Messaging.Msmq
                 {
                     s.Dispose();
                 }
-                Array.Clear(subscriptions, 0, subscriptions.Length);
+                subscriptions = new ImmutableArray<Subscription>();
             }
         }
 
@@ -61,7 +62,7 @@ namespace Messaging.Msmq
             lock (gate)
             {
                 subscriptions = subscriptions.Add(sub);
-                tasks = new Task<MSMQ.Message>[subscriptions.Length];
+                tasks = new Task<MSMQ.Message>[subscriptions.Count];
             }
         }
 
@@ -73,7 +74,7 @@ namespace Messaging.Msmq
                 if (idx < 0)
                     return false;
                 subscriptions = subscriptions.RemoveAt(idx);
-                tasks = new Task<MSMQ.Message>[subscriptions.Length];
+                tasks = new Task<MSMQ.Message>[subscriptions.Count];
                 return true;
             }
         }
@@ -150,6 +151,7 @@ namespace Messaging.Msmq
                     {
                         Queue.MessageReadPropertyFilter = readFilter; // read full details
                         mqMsg = Queue.Receive(TimeSpan.FromMilliseconds(1));
+                        lastPeek = null; // clear the peek task so we peek the next message in the queue
                     }
                     catch (MSMQ.MessageQueueException ex) when (ex.MessageQueueErrorCode == MSMQ.MessageQueueErrorCode.IOTimeout)
                     {
@@ -157,7 +159,7 @@ namespace Messaging.Msmq
                         return false;
                     }
 
-                    var msg = Converter.FromMsmqMessage(mqMsg);
+                    var msg = new ReadOnlyMsmqMessage(mqMsg);
                     Action(msg);
                     return true;
                 }

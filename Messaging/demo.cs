@@ -27,7 +27,7 @@ namespace Messaging
 
         void SendDemo()
         {
-            ITransport t = _factory.New("msmq://host/PRIVATE$/queue");
+            ITransport t = _factory.Create("msmq://host/PRIVATE$/queue");
             var msg = new Message
             {
                 Subject = "Ticket.Generation",

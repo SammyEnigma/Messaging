@@ -43,6 +43,19 @@ namespace Messaging.Subscriptions
             return Array.IndexOf(_items, value);
         }
 
+        public int IndexOf(Predicate<T> predicate)
+        {
+            if (_items == null) return -1;
+            int i = 0;
+            foreach (var item in _items)
+            {
+                if (predicate(item))
+                    return i;
+                i++;
+            }
+            return -1;
+        }
+
         public ImmutableArray<T> Remove(T value)
         {
             int index = IndexOf(value);

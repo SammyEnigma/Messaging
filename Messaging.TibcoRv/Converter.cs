@@ -23,8 +23,7 @@ namespace Messaging.TibcoRv
 
         public static string FromRvSubject(this string subject) => "/" + subject.Replace('.', '/');
 
-        public static bool IsRvScheme(this string scheme) => scheme == "rv" || scheme.StartsWith("rv+", StringComparison.Ordinal);
-
+    
         public static Rv.Message ToRvMessge(IReadOnlyMessage msg, Uri source)
         {
             Contract.Requires(msg != null);
@@ -61,6 +60,8 @@ namespace Messaging.TibcoRv
             else
                 rvm.AddField(Fields.ReplyTo, replyTo.ToString());
         }
+
+        public static bool IsRvScheme(this string scheme) => scheme == "rv" || scheme.StartsWith("rv+", StringComparison.Ordinal);
 
         static void AddPriority(IReadOnlyMessage msg, Rv.Message rvm)
         {

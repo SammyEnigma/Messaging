@@ -1,5 +1,4 @@
-﻿using Messaging.Subscriptions;
-using System;
+﻿using System;
 using System.Diagnostics.Contracts;
 using Rv = TIBCO.Rendezvous;
 

@@ -35,5 +35,3 @@
 *   stomp://stdout/exchange/name
 *   stomp://stdout/queue/name
 */
-
-

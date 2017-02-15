@@ -12,7 +12,7 @@ namespace Messaging.Msmq
 
         public Uri Destination { get; }
 
-        protected MsmqTransport(Uri destination, MSMQ.MessageQueue queue) 
+        public MsmqTransport(Uri destination, MSMQ.MessageQueue queue) 
         {
             if (destination == null)
                 throw new ArgumentNullException(nameof(destination));
