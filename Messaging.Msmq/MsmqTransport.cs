@@ -24,8 +24,8 @@ namespace Messaging.Msmq
 
         public void Send(IReadOnlyMessage msg)
         {
-            var m = Converter.ToMsmqMessage(msg);
-            _queue.Send(m);
+            using (var m = Converter.ToMsmqMessage(msg))
+                _queue.Send(m);
         }
 
         public IWorker CreateWorker() => new MsmqWorker(_queue, Destination);

@@ -14,14 +14,21 @@ namespace Messaging.Msmq
 
         public static MSMQ.Message ToMsmqMessage(this IReadOnlyMessage msg)
         {
-            return new MSMQ.Message
+            if (msg.HasHeaders)
             {
-                Priority = msg.Headers.Priority.HasValue ? (MSMQ.MessagePriority)msg.Headers.Priority : MSMQ.MessagePriority.Normal,
-                TimeToBeReceived = msg.Headers.TimeToLive.HasValue ? msg.Headers.TimeToLive.Value : MSMQ.Message.InfiniteTimeout,
-                ResponseQueue = GetOrAddQueue(msg.Headers.ReplyTo),
-                Body = msg.Body,
-                Extension = EncodeExtension(msg.Headers)
-            };
+                return new MSMQ.Message
+                {
+                    Priority = msg.Headers.Priority.HasValue ? (MSMQ.MessagePriority)msg.Headers.Priority : MSMQ.MessagePriority.Normal,
+                    TimeToBeReceived = msg.Headers.TimeToLive.HasValue ? msg.Headers.TimeToLive.Value : MSMQ.Message.InfiniteTimeout,
+                    ResponseQueue = GetOrAddQueue(msg.Headers.ReplyTo),
+                    Body = msg.Body,
+                    Extension = EncodeExtension(msg.Headers)
+                };
+            } 
+            else
+            {
+                return new MSMQ.Message { Body = msg.Body };
+            }
         }
 
         private static byte[] EncodeExtension(IReadOnlyMessageHeaders headers)

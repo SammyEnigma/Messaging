@@ -2,10 +2,7 @@
 using Messaging.Msmq;
 using Messaging.TibcoRv;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Messaging;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,6 +22,9 @@ namespace PingPong
         IWorker rvw;
         ITransport mqt;
         IWorker mqw;
+        TimeSpan delay = TimeSpan.FromMilliseconds(0);
+        int pings;
+        int pongs;
 
         public Program()
         {
@@ -51,18 +51,25 @@ namespace PingPong
 
         private void OnRvPong(IReadOnlyMessage msg)
         {
-            Console.WriteLine($"Pong recevied as {msg.GetType().Name}, sending ping after short delay");
-            Thread.Sleep(500);
-            var reply = new Messaging.Message { Subject="ping", Body="hello" };
-            mqt.Send(reply);
+            if (++pongs % 1000 == 0)
+                Console.WriteLine($"{pongs} pongs of {msg.GetType().Name}");
+            msg.Dispose();
+            
+            //Thread.Sleep(delay);
+            using (var reply = new Messaging.Message { Subject = "ping", Body = "hello" })
+                mqt.Send(reply);
+           
         }
 
         private void OnMsmqPing(IReadOnlyMessage msg)
         {
-            Console.WriteLine($"Ping recevied as {msg.GetType().Name}, sending pong after short delay");
-            Thread.Sleep(500);
-            var reply = new Messaging.Message { Subject = "pong", Body = "world" };
-            rvt.Send(reply);
+            if (++pings % 1000 == 0)
+                Console.WriteLine($"{pings} pings of {msg.GetType().Name}");
+            msg.Dispose();
+
+            //Thread.Sleep(delay);
+            using (var reply = new Messaging.Message { Subject = "pong", Body = "world" })
+                rvt.Send(reply);
         }
     }
 }

@@ -5,11 +5,13 @@ namespace Messaging
 {
     /// <summary>Read only view of a message</summary>
     [System.ComponentModel.ImmutableObject(true)]
-    public interface IReadOnlyMessage
+    public interface IReadOnlyMessage : IDisposable
     {
         /// <summary>The subject (topic) of this message.  Think about this as the subject of an e-mail.</summary>
         /// <remarks>This is the Label for MSMQ messages, the SendSubject of Tibco RV messages</remarks>
         string Subject { get; }
+
+        bool HasHeaders { get; }
 
         /// <summary>System and user defined message attributes</summary>
         IReadOnlyMessageHeaders Headers { get; }

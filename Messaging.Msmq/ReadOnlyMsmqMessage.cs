@@ -29,9 +29,16 @@ namespace Messaging.Msmq
 
         public string Subject => _msg.Label;
 
+        public bool HasHeaders => _msg.Extension != null || _msg.Extension.Length > 0;
+
         public void Acknowledge()
         {
             throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            _msg.Dispose();
         }
     }
 }

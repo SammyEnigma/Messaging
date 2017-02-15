@@ -34,17 +34,20 @@ namespace Messaging.TibcoRv
             {
                 rvm.SendSubject = ToRvSubject(msg.Subject);
             }
-            if (msg.Headers.ReplyTo != null)
+            if (msg.HasHeaders)
             {
-                AddReplyTo(source, rvm, msg.Headers.ReplyTo);
-            }
-            if (msg.Headers.Priority.HasValue)
-            {
-                AddPriority(msg, rvm);
-            }
-            foreach (KeyValuePair<string, object> pair in msg.Headers)
-            {
-                AddRvField(rvm, pair.Key, pair.Value);
+                if (msg.Headers.ReplyTo != null)
+                {
+                    AddReplyTo(source, rvm, msg.Headers.ReplyTo);
+                }
+                if (msg.Headers.Priority.HasValue)
+                {
+                    AddPriority(msg, rvm);
+                }
+                foreach (KeyValuePair<string, object> pair in msg.Headers)
+                {
+                    AddRvField(rvm, pair.Key, pair.Value);
+                }
             }
             if (msg.Body != null)
             {

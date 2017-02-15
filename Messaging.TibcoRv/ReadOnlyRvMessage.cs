@@ -5,7 +5,7 @@ using Rv = TIBCO.Rendezvous;
 
 namespace Messaging.TibcoRv
 {
-    class ReadOnlyRvMessage : IReadOnlyMessage, IDisposable
+    class ReadOnlyRvMessage : IReadOnlyMessage
     {
         readonly Rv.Message _msg;
         readonly Uri _source;
@@ -23,6 +23,8 @@ namespace Messaging.TibcoRv
         }
 
         public string Subject => _msg.SendSubject;
+
+        public bool HasHeaders => _msg.FieldCount > 1; //body
 
         public IReadOnlyMessageHeaders Headers
         {

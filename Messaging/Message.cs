@@ -23,6 +23,7 @@ namespace Messaging
             }
         }
 
+        public bool HasHeaders => headers != null;
 
         /// <summary>System and user defined message attributes.  Will never be null</summary>
         /// <exception cref="ArgumentNullException">Thrown if you try to set the message headers to null</exception>
@@ -55,6 +56,10 @@ namespace Messaging
         public void Acknowledge()
         {
             // no nothing by default
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

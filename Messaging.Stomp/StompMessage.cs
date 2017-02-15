@@ -21,6 +21,14 @@ namespace Messaging.Stomp
 
         public object Body => frame.Body;
 
+        public bool HasHeaders
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public IReadOnlyMessageHeaders Headers => headers;
 
         public string Subject => headers["subject"]?.ToString();
@@ -28,6 +36,10 @@ namespace Messaging.Stomp
         public void Acknowledge()
         {
             throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

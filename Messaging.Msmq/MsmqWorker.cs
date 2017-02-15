@@ -28,20 +28,32 @@ namespace Messaging.Msmq
         {
             lock(gate)
             {
-                int i = 0;
-                foreach (var s in subscriptions)
-                {
-                    tasks[i++] = s.PeekAsync(timeout);
-                }
+                if (subscriptions.Count == 1)
+                    return subscriptions[0].DispatchMessage();
 
-                int idx = Task.WaitAny(tasks, timeout);
-                if (idx < 0)
-                    return false;
+                if (subscriptions.Count > 1)
+                   return MultiDispatch(timeout);
 
-                var sub = subscriptions[idx];
-                sub.DispatchMessage();
-                return true;
+                return false;
             }
+        }
+
+        private bool MultiDispatch(TimeSpan timeout)
+        {
+            throw new NotImplementedException();
+            //int i = 0;
+            //foreach (var s in subscriptions)
+            //{
+            //    tasks[i++] = s.PeekAsync(timeout);
+            //}
+
+            //int idx = Task.WaitAny(tasks, timeout);
+            //if (idx < 0)
+            //    return false;
+
+            //var sub = subscriptions[idx];
+            //sub.DispatchMessage();
+            //return true;
         }
 
         public void Dispose()
@@ -90,7 +102,7 @@ namespace Messaging.Msmq
                 peekFilter = new MSMQ.MessagePropertyFilter();
                 peekFilter.ClearAll();
                 peekFilter.Label = true;
-                peekFilter.LookupId = true; //TODO: by  ID or LookupId, which is faster?
+                //peekFilter.LookupId = true; //TODO: by  ID or LookupId, which is faster?
 
                 // we read the body too
                 readFilter = new MSMQ.MessagePropertyFilter { Body = true };
@@ -111,16 +123,28 @@ namespace Messaging.Msmq
                 Action = action;
             }
 
-            public Task<MSMQ.Message> PeekAsync(TimeSpan timeout)
+            public MSMQ.Message Peek(TimeSpan timeout)
+            {
+                try
+                {
+                    lock (gate)
+                    {
+                        Queue.MessageReadPropertyFilter = peekFilter; // just peek minimal details
+                        return Queue.Peek(timeout);
+                    }
+                }
+                catch (MSMQ.MessageQueueException ex) when (ex.MessageQueueErrorCode == MSMQ.MessageQueueErrorCode.IOTimeout)
+                {
+                    return null;
+                }
+            }
+
+            public IAsyncResult PeekAsync(TimeSpan timeout)
             {
                 lock (gate)
                 {
-                    // if we previously called this method but did not receive the value, due to another worker, then say we have data now
-                    if (lastPeek?.IsCompleted == true && lastPeek.Result != null)
-                        return lastPeek;
-
                     Queue.MessageReadPropertyFilter = peekFilter; // just peek minimal details
-                    return lastPeek = Task.Factory.FromAsync(Queue.BeginPeek(timeout), EndPeek); // we can't cancel a in-progress Peek, so capture the result in the lastPeek field
+                    return Queue.BeginPeek(timeout);
                 }
             }
 
@@ -146,16 +170,25 @@ namespace Messaging.Msmq
                     if (disposed)
                         throw new ObjectDisposedException(GetType() + " " + Subject);
 
+                    // clear the peek task so we peek the next message in the queue
+                    lastPeek?.Dispose();
+                    lastPeek = null;
+
                     MSMQ.Message mqMsg;
                     try
                     {
                         Queue.MessageReadPropertyFilter = readFilter; // read full details
                         mqMsg = Queue.Receive(TimeSpan.FromMilliseconds(1));
-                        lastPeek = null; // clear the peek task so we peek the next message in the queue
                     }
                     catch (MSMQ.MessageQueueException ex) when (ex.MessageQueueErrorCode == MSMQ.MessageQueueErrorCode.IOTimeout)
                     {
                         // we have already peeked to see if a message is available, but another thread or process may have already read the message from the queue, hence the timeout
+                        return false;
+                    }
+
+                    if (!SubjectMatches(mqMsg))
+                    {
+                        mqMsg.Dispose();
                         return false;
                     }
 
@@ -171,6 +204,12 @@ namespace Messaging.Msmq
                 {
                     disposed = true;
                 }
+            }
+
+            internal bool SubjectMatches(MSMQ.Message msg)
+            {
+                if (string.IsNullOrEmpty(Subject)) return true;
+                return string.Equals(Subject, msg.Label);
             }
         }
     }

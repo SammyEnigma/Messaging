@@ -27,8 +27,8 @@ namespace Messaging.TibcoRv
 
         public void Send(IReadOnlyMessage msg)
         {
-            var rvm = Converter.ToRvMessge(msg, Destination);
-            _transport.Send(rvm);
+            using (var rvm = Converter.ToRvMessge(msg, Destination))
+                _transport.Send(rvm);
         }
 
         public void Dispose()
