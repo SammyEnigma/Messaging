@@ -57,8 +57,7 @@ namespace PingPong
             
             //Thread.Sleep(delay);
             using (var reply = new Messaging.Message { Subject = "ping", Body = "hello" })
-                mqt.Send(reply);
-           
+                mqt.Send(reply);           
         }
 
         private void OnMsmqPing(IReadOnlyMessage msg)

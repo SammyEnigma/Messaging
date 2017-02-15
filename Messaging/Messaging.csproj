@@ -36,16 +36,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CompositeTransportFactory.cs" />
-    <Compile Include="demo.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="IWorker.cs" />
     <Compile Include="MessageHeaders.cs" />
     <Compile Include="Subscriptions\ImmutableArray.cs" />
     <Compile Include="IReadOnlyMessage.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Subscriptions\Subject.cs" />
-    <Compile Include="Transport.cs" />
-    <Compile Include="TransportFactory.cs" />
+    <Compile Include="ITransport.cs" />
+    <Compile Include="ITransportFactory.cs" />
     <Compile Include="Url.cs" />
   </ItemGroup>
   <ItemGroup>

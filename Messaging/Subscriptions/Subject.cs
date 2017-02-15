@@ -3,6 +3,35 @@ using System.Collections.Generic;
 
 namespace Messaging.Subscriptions
 {
+    public static class Extensions
+    {
+        /// <summary>Adds a Rx subscription to a <see cref="IWorker"/></summary>
+        /// <returns>A <see cref="IDisposable"/> that calls <see cref="IWorker.Unsubscribe(Action{IReadOnlyMessage})"/> when it is disposed</returns>
+        public static IDisposable Subscribe(this IWorker worker, MessageSubject ms)
+        {
+            Action<IReadOnlyMessage> action = msg => ms.OnNext(msg);
+            worker.Subscribe(action);
+            return new Unsubscribe(worker, action);
+        }
+
+        class Unsubscribe : IDisposable
+        {
+            readonly IWorker worker;
+            readonly Action<IReadOnlyMessage> action;
+
+            public Unsubscribe(IWorker worker, Action<IReadOnlyMessage> action)
+            {
+                this.action = action;
+                this.worker = worker;
+            }
+
+            public void Dispose()
+            {
+                worker.Unsubscribe(action);
+            }
+        }
+    }
+
     public class MessageSubject : IObservable<IReadOnlyMessage>
     {
         readonly object _gate; // shared the lock with the transport and workers so we dont drop messages when removing subscriptions

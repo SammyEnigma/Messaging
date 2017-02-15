@@ -25,6 +25,8 @@ namespace Messaging.TibcoRv
             _queues.Add(Rv.Queue.Default);  // default queue must be dispatched
         }
 
+        /// <summary>Sends a message to the destination of this transport</summary>
+        /// <exception cref="T:System.ArgumentNullException">thrown when <paramref name="msg" /> is not set</exception>
         public void Send(IReadOnlyMessage msg)
         {
             using (var rvm = Converter.ToRvMessge(msg, Destination))
@@ -36,58 +38,8 @@ namespace Messaging.TibcoRv
             _transport.Dispose();
         }
 
+        /// <summary>Creates a <see cref="T:Messaging.IWorker" /> to receive messages from the <see cref="P:Messaging.ITransport.Destination" /></summary>
         public IWorker CreateWorker() => new RvWorker(_transport, Destination);
     }
-
-    //public class TibcoRvCmTransport : Transport, IDisposable
-    //{
-    //    readonly Rv.CMTransport _transport;
-    //    readonly Rv.QueueGroup _queues;
-
-    //    public TibcoRvCmTransport(Uri destination, Rv.CMTransport transport) : base(destination)
-    //    {
-    //        Contract.Requires(transport != null);
-    //        _transport = transport;
-    //        _queues = new Rv.QueueGroup();
-    //        _queues.Add(new Rv.Queue());
-    //        _queues.Add(Rv.Queue.Default);  // default queue must be dispatched
-    //    }
-
-    //    public override IObservable<IReadOnlyMessage> NewListener(string subject = null)
-    //    {
-    //        if (subject == null) subject = ">"; // all messages!
-    //        var l = new Rv.CMListener(Rv.Queue.Default, _transport, subject, null);
-    //        l.SetExplicitConfirmation(); // always do this?  or make this configurable?
-    //        throw new NotImplementedException();
-    //        //return new TibcoRvSubject(l, Destination);
-    //    }
-
-    //    public override void Send(IReadOnlyMessage msg)
-    //    {
-    //        var rv = Converter.ToRvMessge(msg, Destination);
-    //        var cm = new Rv.CMMessage(rv);
-    //        if (msg.Headers.TimeToLive.HasValue)
-    //            cm.TimeLimit = msg.Headers.TimeToLive.Value.Seconds;
-    //        _transport.Send(cm);
-    //    }
-
-    //    public void Dispose()
-    //    {
-    //        try
-    //        {
-    //            _transport.Destroy();
-    //        }
-    //        catch
-    //        {
-    //            // Dispose methods must not throw exceptions
-    //        }
-    //        GC.SuppressFinalize(this);  // RV does not do this, so we have to
-    //    }
-
-    //    public override IDisposable StartWorker(string name = "")
-    //    {
-    //        return new DisposableDispatcher(_queues, name);
-    //    }
-    //}
 
 }

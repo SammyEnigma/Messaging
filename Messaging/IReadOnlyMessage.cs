@@ -11,11 +11,14 @@ namespace Messaging
         /// <remarks>This is the Label for MSMQ messages, the SendSubject of Tibco RV messages</remarks>
         string Subject { get; }
 
+        /// <summary>Does this message have any <see cref="Headers"/>?</summary>
+        /// <remarks>Prevents extra garbage when sending messages</remarks>
         bool HasHeaders { get; }
 
         /// <summary>System and user defined message attributes</summary>
         IReadOnlyMessageHeaders Headers { get; }
 
+        /// <summary>The main content of the message</summary>
         object Body { get; }
 
         /// <summary>Manually acknowlege a message, ignored if messages are automatically acknowledged</summary>
