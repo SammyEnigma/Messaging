@@ -5,9 +5,9 @@ namespace Messaging.Subscriptions
 {
     public static class Extensions
     {
-        /// <summary>Adds a Rx subscription to a <see cref="IWorker"/></summary>
-        /// <returns>A <see cref="IDisposable"/> that calls <see cref="IWorker.Unsubscribe(Action{IReadOnlyMessage})"/> when it is disposed</returns>
-        public static IDisposable Subscribe(this IWorker worker, MessageSubject ms)
+        /// <summary>Adds a Rx subscription to a <see cref="IMultiSubjectMessaging"/></summary>
+        /// <returns>A <see cref="IDisposable"/> that calls <see cref="IMultiSubjectMessaging.Unsubscribe(Action{IReadOnlyMessage})"/> when it is disposed</returns>
+        public static IDisposable Subscribe(this IMultiSubjectMessaging worker, MessageSubject ms)
         {
             Action<IReadOnlyMessage> action = msg => ms.OnNext(msg);
             worker.Subscribe(action);
@@ -16,10 +16,10 @@ namespace Messaging.Subscriptions
 
         class Unsubscribe : IDisposable
         {
-            readonly IWorker worker;
+            readonly IMultiSubjectMessaging worker;
             readonly Action<IReadOnlyMessage> action;
 
-            public Unsubscribe(IWorker worker, Action<IReadOnlyMessage> action)
+            public Unsubscribe(IMultiSubjectMessaging worker, Action<IReadOnlyMessage> action)
             {
                 this.action = action;
                 this.worker = worker;
@@ -35,7 +35,7 @@ namespace Messaging.Subscriptions
     public class MessageSubject : IObservable<IReadOnlyMessage>
     {
         readonly object _gate; // shared the lock with the transport and workers so we dont drop messages when removing subscriptions
-        protected ImmutableArray<MessageSubscription> _subscriptions = ImmutableArray<MessageSubscription>.Empty;
+        protected Array<MessageSubscription> _subscriptions = Array<MessageSubscription>.Empty;
 
         public string Subject { get; }
 

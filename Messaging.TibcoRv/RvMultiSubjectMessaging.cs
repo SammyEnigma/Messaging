@@ -4,29 +4,32 @@ using Rv = TIBCO.Rendezvous;
 
 namespace Messaging.TibcoRv
 {
-    /// <remarks>
-    /// Do we want one thread per queue/subject?  We don't want it like this when receiving prices for many markets!
-    /// </remarks>
-    internal class RvWorker : IWorker
+    class RvMultiSubjectMessaging : IMultiSubjectMessaging
     {
         readonly Rv.Transport _transport;
         readonly Rv.Queue _queue;
         volatile bool _stop;
         readonly Dictionary<Action<IReadOnlyMessage>, Rv.Listener> _subscriptions = new Dictionary<Action<IReadOnlyMessage>, Rv.Listener>();
 
-        public string Subject { get; }
+        public Uri Address { get; }
 
-        public Uri Destination { get; }
-
-        public RvWorker(Rv.Transport transport, Uri uri)
+        public RvMultiSubjectMessaging(Rv.Transport transport, Uri address)
         {
             if (transport == null)
                 throw new ArgumentNullException(nameof(transport));
-            if (uri == null)
-                throw new ArgumentNullException(nameof(uri));
+            if (address == null)
+                throw new ArgumentNullException(nameof(address));
             _transport = transport;
             _queue = new Rv.Queue();
-            Destination = uri;
+            Address = address;
+        }
+
+        /// <summary>Sends a message to the destination of this transport</summary>
+        /// <exception cref="T:System.ArgumentNullException">thrown when <paramref name="msg" /> is not set</exception>
+        public void Send(IReadOnlyMessage msg)
+        {
+            using (var rvm = Converter.ToRvMessge(msg, Address))
+                _transport.Send(rvm);
         }
 
         public void Dispose()
@@ -51,13 +54,13 @@ namespace Messaging.TibcoRv
 
         public void Subscribe(Action<IReadOnlyMessage> observer, string subject = null)
         {
-            subject = subject ?? Destination.AbsolutePath;
+            subject = subject ?? Address.AbsolutePath;
             var rvSubject =  Converter.ToRvSubject(subject);
             lock (_subscriptions)
             {
                 var l = new Rv.Listener(_queue, _transport, rvSubject, null);
                 l.MessageReceived += (sender, args) => {
-                    var msg = new ReadOnlyRvMessage(args.Message, Destination);
+                    var msg = new ReadOnlyRvMessage(args.Message, Address);
                     observer(msg);
                 };
                 _subscriptions.Add(observer, l);

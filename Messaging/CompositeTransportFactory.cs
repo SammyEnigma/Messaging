@@ -4,16 +4,16 @@ using System.Linq;
 
 namespace Messaging
 {
-    /// <summary>A <see cref="ITransportFactory"/> that delegates <see cref="ITransport"/> creation to the other <see cref="ITransportFactory"/></summary>
-    public class CompositeTransportFactory : ITransportFactory
+    /// <summary>A <see cref="IMessagingFactory"/> that delegates <see cref="IMessaging"/> creation to the other <see cref="IMessagingFactory"/></summary>
+    public class CompositeMessagingFactory : IMessagingFactory
     {
-        readonly ITransportFactory[] factories;
+        readonly IMessagingFactory[] factories;
 
-        public CompositeTransportFactory(IEnumerable<ITransportFactory> factories) : this(factories?.ToArray())
+        public CompositeMessagingFactory(IEnumerable<IMessagingFactory> factories) : this(factories?.ToArray())
         {
         }
 
-        public CompositeTransportFactory(params ITransportFactory[] factories)
+        public CompositeMessagingFactory(params IMessagingFactory[] factories)
         {
             if (factories == null)
                 throw new ArgumentNullException(nameof(factories));
@@ -23,14 +23,25 @@ namespace Messaging
             this.factories = factories;
         }
 
-        public bool TryCreate(Uri destination, out ITransport transport)
+        public bool TryCreate(Uri address, out IMessaging messaging)
         {
             foreach (var f in factories)
             {
-                if (f.TryCreate(destination, out transport))
+                if (f.TryCreate(address, out messaging))
                     return true;
             }
-            transport = null;
+            messaging = null;
+            return false;
+        }
+
+        public bool TryCreateMultiSubject(Uri address, out IMultiSubjectMessaging subscriptionGroup)
+        {
+            foreach (var f in factories)
+            {
+                if (f.TryCreateMultiSubject(address, out subscriptionGroup))
+                    return true;
+            }
+            subscriptionGroup = null;
             return false;
         }
     }

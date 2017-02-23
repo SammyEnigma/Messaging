@@ -4,15 +4,15 @@ using Rv = TIBCO.Rendezvous;
 
 namespace Messaging.TibcoRv
 {
-    public class RvTransportFactory : ITransportFactory
+    public class RvMessagingFactory : IMessagingFactory
     {
         readonly Dictionary<string, ServiceConfig> _configByService;
 
-        public RvTransportFactory() : this(new Dictionary<string, ServiceConfig>())
+        public RvMessagingFactory() : this(new Dictionary<string, ServiceConfig>())
         {
         }
 
-        public RvTransportFactory(Dictionary<string, ServiceConfig> configByService)
+        public RvMessagingFactory(Dictionary<string, ServiceConfig> configByService)
         {
             if (configByService == null)
                 throw new ArgumentNullException(nameof(configByService));
@@ -38,18 +38,33 @@ namespace Messaging.TibcoRv
             }
         }
 
-        public bool TryCreate(Uri destination, out ITransport transport)
+        public bool TryCreate(Uri address, out IMessaging transport)
         {
-            if (!destination.Scheme.IsRvScheme())
+            if (!address.Scheme.IsRvScheme())
             {
                 transport = null;
                 return false;
             }
 
-            var service = destination.Host;
+            var service = address.Host;
             var config = GetConfig(service);
             var rvt = new Rv.NetTransport(service, config.Network, config.Daemon);
-            transport = new RvTransport(destination, rvt);
+            transport = new RvMessaging(address, rvt);
+            return true;
+        }
+
+        public bool TryCreateMultiSubject(Uri address, out IMultiSubjectMessaging subscriptionGroup)
+        {
+            if (!address.Scheme.IsRvScheme())
+            {
+                subscriptionGroup = null;
+                return false;
+            }
+
+            var service = address.Host;
+            var config = GetConfig(service);
+            var rvt = new Rv.NetTransport(service, config.Network, config.Daemon);
+            subscriptionGroup = new RvMultiSubjectMessaging(rvt, address);
             return true;
         }
 

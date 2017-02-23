@@ -5,19 +5,20 @@ using System.Collections.Generic;
 namespace Messaging.Subscriptions
 {
     /// <summary>A copy-on-write array list that replaces the backing array on <see cref="Add(T)"/> and <see cref="Remove(T)"/> is called.</summary>
-    [System.ComponentModel.ImmutableObject(true)]
-    public struct ImmutableArray<T> : IReadOnlyCollection<T>
+    public struct Array<T> : IReadOnlyCollection<T>
     {
-        public static readonly ImmutableArray<T> Empty = new ImmutableArray<T>();
+        public static readonly Array<T> Empty = new Array<T>();
 
         readonly T[] _items;
 
-        private ImmutableArray(T[] items)
+        private Array(T[] items)
         {
             _items = items;
         }
      
         public int Count => _items == null ? 0 : _items.Length;
+
+        public T[] Inner => _items;
 
         public T this[int index]
         {
@@ -26,15 +27,21 @@ namespace Messaging.Subscriptions
                 if (index < 0 || index >= Count) throw new IndexOutOfRangeException();
                 return _items[index];
             }
+            set
+            {
+                //unsafe operation that mutates the array
+                if (index < 0 || index >= Count) throw new IndexOutOfRangeException();
+                _items[index] = value;
+            }
         }
 
-        public ImmutableArray<T> Add(T value)
+        public Array<T> Add(T value)
         {
             var copy = new T[Count + 1];
             if (Count > 0)
                 Array.Copy(_items, copy, _items.Length);
             copy[copy.Length - 1] = value;
-            return new ImmutableArray<T>(copy);
+            return new Array<T>(copy);
         }
 
         public int IndexOf(T value)
@@ -56,14 +63,14 @@ namespace Messaging.Subscriptions
             return -1;
         }
 
-        public ImmutableArray<T> Remove(T value)
+        public Array<T> Remove(T value)
         {
             int index = IndexOf(value);
             if (index < 0) return this;
             return RemoveAt(index);
         }
 
-        public ImmutableArray<T> RemoveAt(int index)
+        public Array<T> RemoveAt(int index)
         {
             if (index < 0 || index >= Count) throw new IndexOutOfRangeException();
 
@@ -72,7 +79,7 @@ namespace Messaging.Subscriptions
                 Array.Copy(_items, 0, copy, 0, index); // copy items before index
             if (index < _items.Length)
                 Array.Copy(_items, index + 1, copy, index, _items.Length - index - 1); // copy item after index
-            return new ImmutableArray<T>(copy);
+            return new Array<T>(copy);
         }
 
         public IEnumerator<T> GetEnumerator()

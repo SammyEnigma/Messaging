@@ -37,7 +37,7 @@ namespace Messaging.TibcoRv.UnitTests
                 dis = new Rv.Dispatcher(q, 10.0);
 
                 Message input = HelloWorldMessage("/say/hello");
-                using (var trans = new RvTransport(new Uri("rv+ipc://localhost"), rvt))
+                using (var trans = new RvMessaging(new Uri("rv+ipc://localhost"), rvt))
                     trans.Send(input);
 
                 Assert.IsTrue(evt.WaitOne(2000), "timeouted waiting for RV message");
@@ -57,14 +57,13 @@ namespace Messaging.TibcoRv.UnitTests
             var rvt = Rv.IntraProcessTransport.UniqueInstance;
 
             Message input = HelloWorldMessage("/say/hello");
-            using (var trans = new RvTransport(new Uri("rv+ipc://localhost"), rvt))
-            using (var worker = trans.CreateWorker())
+            using (var group = new RvMultiSubjectMessaging(rvt, new Uri("rv+ipc://localhost")))
             {
                 IReadOnlyMessage got = null;
                 var evt = new AutoResetEvent(false);
-                worker.Subscribe(msg => { got = msg; evt.Set(); }, "/say/hello");
+                group.Subscribe(msg => { got = msg; evt.Set(); }, "/say/hello");
                 rvt.Send(new Rv.Message { SendSubject = "say.hello" });
-                Assert.IsTrue(worker.DispatchMessage(TimeSpan.FromSeconds(2)));
+                Assert.IsTrue(group.DispatchMessage(TimeSpan.FromSeconds(2)));
                 Assert.NotNull(got);
             }
         }

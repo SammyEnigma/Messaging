@@ -7,15 +7,20 @@ namespace Messaging.Msmq
     class ReadOnlyMsmqMessage : IReadOnlyMessage
     {
         readonly MSMQ.Message _msg;
+        readonly MSMQ.MessageQueueTransaction _txn;
         ReadOnlyMsmqMessageHeaders _headers;
+        bool _committed;
 
-        public ReadOnlyMsmqMessage(MSMQ.Message mqm)
+        public ReadOnlyMsmqMessage(MSMQ.Message mqm, MSMQ.MessageQueueTransaction txn = null)
         {
             Contract.Requires(mqm != null);
-            this._msg = mqm;
+            _msg = mqm;
+            _txn = txn;
         }
 
-        public object Body => _msg.Body;
+        public string Subject => _msg.Label;
+
+        public bool HasHeaders => _msg.Extension != null || _msg.Extension.Length > 0;
 
         public IReadOnlyMessageHeaders Headers
         {
@@ -27,17 +32,23 @@ namespace Messaging.Msmq
             }
         }
 
-        public string Subject => _msg.Label;
-
-        public bool HasHeaders => _msg.Extension != null || _msg.Extension.Length > 0;
+        public object Body => _msg.Body;
 
         public void Acknowledge()
         {
-            throw new NotImplementedException();
+            if (_committed)
+                return;
+
+            _committed = true;
+            _txn?.Commit();
+            _txn?.Dispose();
         }
 
         public void Dispose()
         {
+            if (!_committed)
+                _txn?.Abort();
+            _txn?.Dispose();
             _msg.Dispose();
         }
     }

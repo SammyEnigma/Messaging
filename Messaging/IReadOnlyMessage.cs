@@ -21,8 +21,8 @@ namespace Messaging
         /// <summary>The main content of the message</summary>
         object Body { get; }
 
-        /// <summary>Manually acknowlege a message, ignored if messages are automatically acknowledged</summary>
-        /// <remarks>Used to acknowlegde MSMQ transactional messages, and RV certified messages</remarks>
+        /// <summary>Acknowlege the receipt of a message.  If <see cref="Acknowledge"/> is NOT called before <see cref="IDisposable.Dispose"/> then the message will be re-delivered.</summary>
+        /// <remarks>ignored if messages are automatically acknowledged</remarks>
         void Acknowledge();
     }
 

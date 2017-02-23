@@ -18,33 +18,29 @@ namespace PingPong
             new Program().Run();
         }
 
-        ITransport rvt;
-        IWorker rvw;
-        ITransport mqt;
-        IWorker mqw;
+        IMultiSubjectMessaging rvMessaging;
+        IMultiSubjectMessaging mqMessaging;
         TimeSpan delay = TimeSpan.FromMilliseconds(0);
         int pings;
         int pongs;
 
         public Program()
         {
-            var factory = new CompositeTransportFactory(new MsmqTransportFactory(), new RvTransportFactory());
-            rvt = factory.Create("rv://7500/pong");
-            rvw = rvt.CreateWorker();
-            rvw.Subscribe(OnRvPong);
+            var factory = new CompositeMessagingFactory(new MsmqMessagingFactory(), new RvMessagingFactory());
+            factory.TryCreateMultiSubject(new Uri("rv://7500/pong"), out rvMessaging);
+            rvMessaging.Subscribe(OnRvPong);
 
-            mqt = factory.Create("msmq://localhost/private$/ping");
-            mqw = mqt.CreateWorker();
-            mqw.Subscribe(OnMsmqPing);
+            factory.TryCreateMultiSubject(new Uri("msmq://localhost/private$/ping"), out mqMessaging);
+            mqMessaging.Subscribe(OnMsmqPing);
         }
 
         public void Run()
         {
-            var t1 = rvw.Start();
-            var t2 = mqw.Start();
+            var t1 = rvMessaging.Start();
+            var t2 = mqMessaging.Start();
 
             var reply = new Messaging.Message { Subject = "ping", Body = "hello" };
-            mqt.Send(reply);
+            mqMessaging.Send(reply);
 
             Task.WaitAll(t1, t2);
         }
@@ -57,7 +53,7 @@ namespace PingPong
             
             //Thread.Sleep(delay);
             using (var reply = new Messaging.Message { Subject = "ping", Body = "hello" })
-                mqt.Send(reply);           
+                mqMessaging.Send(reply);           
         }
 
         private void OnMsmqPing(IReadOnlyMessage msg)
@@ -68,7 +64,7 @@ namespace PingPong
 
             //Thread.Sleep(delay);
             using (var reply = new Messaging.Message { Subject = "pong", Body = "world" })
-                rvt.Send(reply);
+                rvMessaging.Send(reply);
         }
     }
 }
