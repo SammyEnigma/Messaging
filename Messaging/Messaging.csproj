@@ -35,7 +35,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CompositeTransportFactory.cs" />
+    <Compile Include="CompositeMessagingFactory.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="IMessaging.cs" />
     <Compile Include="IMessagingFactory.cs" />

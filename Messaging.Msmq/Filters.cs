@@ -2,7 +2,6 @@
 
 namespace Messaging.Msmq
 {
-
     static class Filters
     {
         public static readonly MSMQ.MessagePropertyFilter Peek;
@@ -14,7 +13,6 @@ namespace Messaging.Msmq
             Peek = new MSMQ.MessagePropertyFilter();
             Peek.ClearAll();
             Peek.Label = true;
-            //peekFilter.LookupId = true; //TODO: by  ID or LookupId, which is faster?
 
             // we read the body too
             Read = new MSMQ.MessagePropertyFilter { Body = true };
