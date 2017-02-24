@@ -4,32 +4,29 @@ using Rv = TIBCO.Rendezvous;
 
 namespace Messaging.TibcoRv
 {
-    class RvMultiSubjectMessaging : IMultiSubjectMessaging
+    abstract class BaseRvMultiSubjectMessaging : IMultiSubjectMessaging
     {
-        readonly Rv.Transport _transport;
-        readonly Rv.Queue _queue;
-        volatile bool _stop;
-        readonly Dictionary<Action<IReadOnlyMessage>, Rv.Listener> _subscriptions = new Dictionary<Action<IReadOnlyMessage>, Rv.Listener>();
+        protected readonly Rv.Queue _queue;
+        protected readonly Dictionary<Action<IReadOnlyMessage>, Rv.Listener> _subscriptions = new Dictionary<Action<IReadOnlyMessage>, Rv.Listener>();
 
         public Uri Address { get; }
 
-        public RvMultiSubjectMessaging(Rv.Transport transport, Uri address)
+        public BaseRvMultiSubjectMessaging(Uri address)
         {
-            if (transport == null)
-                throw new ArgumentNullException(nameof(transport));
             if (address == null)
                 throw new ArgumentNullException(nameof(address));
-            _transport = transport;
             _queue = new Rv.Queue();
             Address = address;
         }
+
+        protected abstract Rv.Transport Transport { get; }
 
         /// <summary>Sends a message to the destination of this transport</summary>
         /// <exception cref="T:System.ArgumentNullException">thrown when <paramref name="msg" /> is not set</exception>
         public void Send(IReadOnlyMessage msg)
         {
             using (var rvm = Converter.ToRvMessge(msg, Address))
-                _transport.Send(rvm);
+                Transport.Send(rvm);
         }
 
         public void Dispose()
@@ -58,14 +55,17 @@ namespace Messaging.TibcoRv
             var rvSubject =  Converter.ToRvSubject(subject);
             lock (_subscriptions)
             {
-                var l = new Rv.Listener(_queue, _transport, rvSubject, null);
-                l.MessageReceived += (sender, args) => {
+                var l = CreateListener(observer, rvSubject);
+                l.MessageReceived += (sender, args) =>
+                {
                     var msg = new ReadOnlyRvMessage(args.Message, Address);
                     observer(msg);
                 };
                 _subscriptions.Add(observer, l);
             }
         }
+
+        protected abstract Rv.Listener CreateListener(Action<IReadOnlyMessage> observer, string rvSubject);
 
         public bool Unsubscribe(Action<IReadOnlyMessage> observer, string subject = null)
         {
@@ -83,5 +83,46 @@ namespace Messaging.TibcoRv
             }
         }
 
+    }
+
+    class RvMultiSubjectMessaging : BaseRvMultiSubjectMessaging
+    {
+        readonly Rv.Transport _transport;
+
+        protected override Rv.Transport Transport => _transport;
+
+        public RvMultiSubjectMessaging(Rv.Transport transport, Uri address) : base(address)
+        {
+            if (transport == null)
+                throw new ArgumentNullException(nameof(transport));
+            _transport = transport;
+        }
+
+        protected override Rv.Listener CreateListener(Action<IReadOnlyMessage> observer, string rvSubject)
+        {
+            return new Rv.Listener(_queue, Transport, rvSubject, null);
+        }
+    }
+
+    class RvCertifiedMultiSubjectMessaging : BaseRvMultiSubjectMessaging
+    {
+        readonly Rv.CMTransport _transport;
+
+        protected override Rv.Transport Transport => _transport;
+
+        public RvCertifiedMultiSubjectMessaging(Rv.CMTransport transport, Uri address) : base(address)
+        {
+            if (transport == null)
+                throw new ArgumentNullException(nameof(transport));
+            _transport = transport;
+        }
+
+        protected override Rv.Listener CreateListener(Action<IReadOnlyMessage> observer, string rvSubject)
+        {
+            // default listener
+            var l = new Rv.CMListener(_queue, _transport, rvSubject, null);
+            l.SetExplicitConfirmation();
+            return l;
+        }
     }
 }

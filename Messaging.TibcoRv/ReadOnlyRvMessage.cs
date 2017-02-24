@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
-using TIBCO.Rendezvous;
 using Rv = TIBCO.Rendezvous;
 
 namespace Messaging.TibcoRv
@@ -40,12 +39,9 @@ namespace Messaging.TibcoRv
 
         public void Acknowledge()
         {
-            if (_msg is CMMessage)
-            {
-                //TODO: check with works, does GetSource() return the CMListener or just a Listener?
-                var cmlistener = _msg.GetSource() as Rv.CMListener;
-                cmlistener?.ConfirmMessage(_msg); //TODO: ReadOnlyCmMessage?
-            }
+            var cmlistener = _msg.GetSource() as Rv.CMListener;
+            if (cmlistener != null)
+                cmlistener.ConfirmMessage(_msg); //TODO: ReadOnlyCmMessage?
         }
 
         public void Dispose()
