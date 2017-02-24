@@ -61,17 +61,24 @@ namespace Messaging.Msmq
 
         public static MSMQ.MessageQueue GetOrAddQueue(Uri uri)
         {
+            QueueDetails details;
+            return GetOrAddQueue(uri, out details);
+        }
+
+        public static MSMQ.MessageQueue GetOrAddQueue(Uri uri, out QueueDetails details)
+        {
+            details = default(QueueDetails);
             if (uri == null) return null;
-            var details = UriToQueueName(uri);
+
+            details = UriToQueueName(uri);
             if (!details.Valid) return null;
 
-            var q = Queues.Get(details.QueueName);
+            var q = (MSMQ.MessageQueue)Queues.Get(details.QueueName);
             if (q == null)
             {
                 q = new MSMQ.MessageQueue(details.QueueName);
                 Queues.AddOrGetExisting(details.QueueName, q, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(20) });
             }
-
             return (MSMQ.MessageQueue)q;
         }
 
@@ -141,6 +148,9 @@ namespace Messaging.Msmq
             if (@private && "localhost".Equals(host, OrdinalIgnoreCase))
                 host = ".";
 
+            var query = uri.Query;
+            bool express = string.Equals("?express=true", query, OrdinalIgnoreCase);
+
             switch (uri.Scheme)
             {
                 case "msmq":
@@ -179,7 +189,11 @@ namespace Messaging.Msmq
                 default:
                     return new QueueDetails();  // not valid
             }
-            return new QueueDetails(name.ToString(), subqueue, topic);
+
+            if (!string.IsNullOrEmpty(subqueue))
+                name.Append(';').Append(subqueue);
+
+            return new QueueDetails(name.ToString(), subqueue, topic, !express);
         }
 
     }
@@ -190,13 +204,15 @@ namespace Messaging.Msmq
 
         public string QueueName { get; }
         public string Subqueue { get; }
-        public string Topic { get; }
+        public string Subject { get; }
+        public bool Recoverable { get; }
 
-        public QueueDetails(string formatName, string subqueue, string topic)
+        public QueueDetails(string formatName, string subqueue, string topic, bool recoverable)
         {
             QueueName = formatName;
             Subqueue = subqueue;
-            Topic = topic;
+            Subject = topic;
+            Recoverable = recoverable;
         }
     }
 }

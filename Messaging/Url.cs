@@ -3,6 +3,7 @@
 * 
 * MSMQ: 
 *   msmq://host/queue
+*   msmq://host/queue?express=true
 *   msmq://host/queue#subqueue
 *   msmq://host/private$/queue
 *   msmq://host/private$/queue/topic/subtopic

@@ -37,5 +37,18 @@ namespace Messaging.Msmq
             return string.Equals(subject, msg.Label, StringComparison.Ordinal);
         }
 
+        public static bool IsTransactional(this MSMQ.MessageQueue queue)
+        {
+            try
+            {
+                return queue.Transactional;
+            }
+            catch (MSMQ.MessageQueueException ex) when (ex.MessageQueueErrorCode == MSMQ.MessageQueueErrorCode.AccessDenied)
+            {
+                // we sometimes cannot tell for remote queues, lets assume it is and then handle the exception that it is not transactional
+                return true;
+            }
+        }
+
     }
 }

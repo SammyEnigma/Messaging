@@ -67,8 +67,9 @@ namespace Messaging.TibcoRv
             }
         }
 
-        public bool Unsubscribe(Action<IReadOnlyMessage> observer)
+        public bool Unsubscribe(Action<IReadOnlyMessage> observer, string subject = null)
         {
+            subject = subject ?? Address.AbsolutePath;
             lock (_subscriptions)
             {
                 Rv.Listener l;

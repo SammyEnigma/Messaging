@@ -12,14 +12,17 @@ namespace PingPong
     {
         static void Main(string[] args)
         {
-            if (!MessageQueue.Exists(@".\private$\ping"))
-                MessageQueue.Create(@".\private$\ping");
+            bool transactional = false;
+            if (MessageQueue.Exists(@".\private$\ping"))
+                MessageQueue.Delete(@".\private$\ping");
+            
+            MessageQueue.Create(@".\private$\ping", transactional);
 
             new Program().Run();
         }
 
         IMultiSubjectMessaging rvMessaging;
-        IMultiSubjectMessaging mqMessaging;
+        IMessaging mqMessaging;
         TimeSpan delay = TimeSpan.FromMilliseconds(0);
         int pings;
         int pongs;
@@ -27,28 +30,39 @@ namespace PingPong
         public Program()
         {
             var factory = new CompositeMessagingFactory(new MsmqMessagingFactory(), new RvMessagingFactory());
-            factory.TryCreateMultiSubject(new Uri("rv://7500/pong"), out rvMessaging);
+            rvMessaging = factory.CreateMultiSubject("rv://7500/pong");
             rvMessaging.Subscribe(OnRvPong);
 
-            factory.TryCreateMultiSubject(new Uri("msmq://localhost/private$/ping"), out mqMessaging);
-            mqMessaging.Subscribe(OnMsmqPing);
+            mqMessaging = factory.Create("msmq://localhost/private$/ping?express=true");            
         }
 
         public void Run()
         {
             var t1 = rvMessaging.Start();
-            var t2 = mqMessaging.Start();
 
+            var t2 = MsmqLoop();
+
+            // start the piong pong
             var reply = new Messaging.Message { Subject = "ping", Body = "hello" };
             mqMessaging.Send(reply);
 
             Task.WaitAll(t1, t2);
         }
 
+        private async Task MsmqLoop()
+        {
+            for (;;)
+            {
+                var msg = await mqMessaging.ReceiveAsync(TimeSpan.FromHours(1));
+                OnMsmqPing(msg);
+            }
+        }
+
         private void OnRvPong(IReadOnlyMessage msg)
         {
             if (++pongs % 1000 == 0)
                 Console.WriteLine($"{pongs} pongs of {msg.GetType().Name}");
+            msg.Acknowledge();
             msg.Dispose();
             
             //Thread.Sleep(delay);
@@ -60,6 +74,7 @@ namespace PingPong
         {
             if (++pings % 1000 == 0)
                 Console.WriteLine($"{pings} pings of {msg.GetType().Name}");
+            msg.Acknowledge();
             msg.Dispose();
 
             //Thread.Sleep(delay);

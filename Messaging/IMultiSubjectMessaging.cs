@@ -21,6 +21,6 @@ namespace Messaging
         void Subscribe(Action<IReadOnlyMessage> observer, string subject = null);
 
         /// <summary>Removes a subscription</summary>
-        bool Unsubscribe(Action<IReadOnlyMessage> observer);
+        bool Unsubscribe(Action<IReadOnlyMessage> observer, string subject = null);
     }
 }

@@ -51,6 +51,7 @@
     <Compile Include="MsmqMessagingFactory.cs" />
     <Compile Include="Converter.cs" />
     <Compile Include="MsmqMultiSubjectMessaging.cs" />
+    <Compile Include="MsmqSender.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReadOnlyMsmqMessage.cs" />
     <Compile Include="ReadOnlyMsmqMessageHeaders.cs" />
